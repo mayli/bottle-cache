@@ -80,6 +80,7 @@ class CachePlugin(object):
     )
 
     cache_key_rules = {
+        'full_url': lambda req, _: req.url,
         'full_path': lambda req, cxt: str(cxt.rule) + req.query_string,
         'query_path': lambda req, cxt: req.query_string,
     }
