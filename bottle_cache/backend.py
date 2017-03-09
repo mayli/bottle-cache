@@ -80,7 +80,8 @@ class CompressedRedisCacheBackend(RedisCacheBackend):
                 pickle.loads(
                     self.compression_method.decompress(
                         super(CompressedRedisCacheBackend, self).get(key))))
-        except TypeError:
+        except TypeError as e:
+            print(e)
             return None
 
     def set(self, key, value, ttl=None):
