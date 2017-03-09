@@ -3,7 +3,7 @@
 """
 
 import pytest
-from bottle_cache.backend import RedisCacheBackend
+from bottle_cache.backend import RedisCacheBackend, CompressedRedisCacheBackend
 import datetime
 from collections import namedtuple
 
@@ -48,7 +48,7 @@ def mock_redis():
     return RedisMock(db=0, host='localhost', port=6379)
 
 
-@pytest.fixture(scope='session')
-def mock_redis_cache(mock_redis):
-    cache = RedisCacheBackend(backend_client=mock_redis.__class__, db=0, port=6379)
+@pytest.fixture(scope='session', params=[RedisCacheBackend, CompressedRedisCacheBackend])
+def mock_redis_cache(mock_redis, request):
+    cache = request.param(backend_client=mock_redis.__class__, db=0, port=6379)
     return cache

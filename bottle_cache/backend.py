@@ -7,6 +7,11 @@ Provides package caching backend implementations.
 __author__ = 'Papavassiliou Vassilis'
 __date__ = '23-1-2016'
 
+try:
+    import cPickle as pickle
+except:
+    import pickle
+import zlib
 
 from bottle_cache.bases import (BaseCacheBackend, CacheError)
 from redis import StrictRedis
@@ -60,3 +65,24 @@ class RedisCacheBackend(BaseCacheBackend):
     def clear(self):
         self.backend.flushall()
         return self
+
+
+class CompressedRedisCacheBackend(RedisCacheBackend):
+    """Redis backend with compression enabled
+    """
+    def __init__(self, **kwargs):
+        self.compression_method = kwargs.pop("compression_method", zlib)
+        super(CompressedRedisCacheBackend, self).__init__(**kwargs)
+
+    def get(self, key):
+        try:
+            return str(
+                pickle.loads(
+                    self.compression_method.decompress(
+                        super(CompressedRedisCacheBackend, self).get(key))))
+        except TypeError:
+            return None
+
+    def set(self, key, value, ttl=None):
+        return super(CompressedRedisCacheBackend, self).set(
+            key, self.compression_method.compress(pickle.dumps(value)), ttl=ttl)
