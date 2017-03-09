@@ -75,14 +75,10 @@ class CompressedRedisCacheBackend(RedisCacheBackend):
         super(CompressedRedisCacheBackend, self).__init__(**kwargs)
 
     def get(self, key):
-        try:
-            return str(
-                pickle.loads(
-                    self.compression_method.decompress(
-                        super(CompressedRedisCacheBackend, self).get(key))))
-        except TypeError as e:
-            print(e)
-            return None
+        value = super(CompressedRedisCacheBackend, self).get(key)
+        if value is not None:
+            value = str(pickle.loads(self.compression_method.decompress(value)))
+        return value
 
     def set(self, key, value, ttl=None):
         return super(CompressedRedisCacheBackend, self).set(
